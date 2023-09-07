@@ -1,0 +1,14 @@
+gunzip *.gz # Code for extracting fastq files
+cat chr1.fa.gz.fa > genome.fa # Code for concatenating genome file
+fastqc <forward_paired.fastq> <reversed_paired.fastq> # Code for Quality control by FASTQC
+Cutadapt -a<overrepresented_sequence> -A<overrepresented_sequence> --minimum length 50 –pair-filtered=any -O trimmed_forward_paired.fastq -p trimmed_reversed_paired.fastq forward_paired.fastq reversed_paired.fastq # Code for adapter removal by Cutadapt   
+bwa index genome.fa # Code for indexing reference genome with BWA
+bwa mem genome.fa trimmed_forward_paired.fastq trimmed_reversed_paired.fastq > <filename>.sam # Code for alignment to reference genome with BWA
+samtools view -u <filename>.sam | samtools sort -o <sorted_genome_filename>.bam # Code for SAM to BAM file by Samtools 
+samtools rmdup -sS <sorted_genome_filename>.bam <removed_duplicates_filename>.bam # Code for removing duplicates by Samtools
+samtools mpileup -g -u -f genome.fa <removed_duplicates_filename>.bam > variation_mileup # Code for variation pileup by Samtools
+bcftools call -c -v <variation_mileup_filename> > <variation_data_filename>.vcf # Code for bcf to vcf file through BCFtools
+cat <variation_data_filename>.vcf | java -jar SnpSift.jar filter "(( DP >= 10 )&( QUAL >= 30 )&(MQ >= 30 ))"> <filtered_filename>.vcf # Code for filtering variants by SnpSift
+sh igv.sh # Code for executing IGV
+./rtg vcfstats <path_to_filtered.vcf_file>/filtered.vcf # Code for statistical analysis by RTGTools
+vcf-isec -o <output.vcf> ALSfiltered.vcf parkinsonfiltered.vcf # Code for intersecting two vcf files by VCFtools 
